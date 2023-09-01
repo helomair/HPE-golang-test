@@ -1,0 +1,15 @@
+{
+    "ServerInfo": {
+        "host": "127.0.0.1",
+        "port": "8080"
+    },
+    "MongoDBInfo": {
+        "host": "127.0.0.1",
+        "port": "27017"
+    },
+    "LineInfo": {
+        "id": "****",
+        "secret" : "****",
+        access_token : "****"
+    }
+}
