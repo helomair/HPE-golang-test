@@ -18,20 +18,21 @@ type serverInfo struct {
 }
 
 type mongoDBInfo struct {
-	Host string `json:"host"`
-	Port string `json:"port"`
+	Host   string `json:"host"`
+	Port   string `json:"port"`
+	DbName string `json:"dbname"`
 }
 
 type lineInfo struct {
 	Id          string `json:"id"`
 	Secret      string `json:"secret"`
-	AccessToken string `json:"access_token"`
+	AccessToken string `json:"accesstoken"`
 }
 
 var mutex sync.Mutex
 var Configs *configs
 
-func getInstance() {
+func getConfigInstance() {
 	if Configs == nil {
 		mutex.Lock()
 		defer mutex.Unlock()
@@ -45,18 +46,15 @@ func configInit() {
 	viper.SetConfigName("config.json")
 	viper.AddConfigPath("./configs")
 	viper.SetConfigType("json")
-	err := viper.ReadInConfig()
-	if err != nil {
+	if err := viper.ReadInConfig(); err != nil {
 		panic("Config file read error : " + err.Error())
 	}
 
-	err = viper.Unmarshal(&Configs)
-
-	if err != nil {
+	if err := viper.Unmarshal(&Configs); err != nil {
 		panic("Config file read error : " + err.Error())
 	}
 }
 
 func init() {
-	getInstance()
+	getConfigInstance()
 }
