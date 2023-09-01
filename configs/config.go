@@ -1,8 +1,6 @@
 package configs
 
 import (
-	"sync"
-
 	"github.com/spf13/viper"
 )
 
@@ -29,20 +27,9 @@ type lineInfo struct {
 	AccessToken string `json:"accesstoken"`
 }
 
-var mutex sync.Mutex
 var Configs *configs
 
-func getConfigInstance() {
-	if Configs == nil {
-		mutex.Lock()
-		defer mutex.Unlock()
-		if Configs == nil {
-			configInit()
-		}
-	}
-}
-
-func configInit() {
+func ConfigInit() {
 	viper.SetConfigName("config.json")
 	viper.AddConfigPath("./configs")
 	viper.SetConfigType("json")
@@ -53,8 +40,4 @@ func configInit() {
 	if err := viper.Unmarshal(&Configs); err != nil {
 		panic("Config file read error : " + err.Error())
 	}
-}
-
-func init() {
-	getConfigInstance()
 }

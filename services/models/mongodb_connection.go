@@ -3,46 +3,36 @@ package models
 import (
 	"HPE-golang-test/configs"
 	"context"
-	"sync"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var mutex sync.Mutex
-var dbConnection *DBConnection
+var DBConn *DBConnection
 
 type DBConnection struct {
 	client *mongo.Client
 	db     *mongo.Database
 }
 
-func GetDBConnInstance() *DBConnection {
-	if dbConnection == nil {
-		mutex.Lock()
-		defer mutex.Unlock()
-		if dbConnection == nil {
-			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			defer cancel()
+func InitDBConnection() *DBConnection {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
-			dbUrl := "mongodb://" + configs.Configs.MongoDBInfo.Host + ":" + configs.Configs.MongoDBInfo.Port
-			client, err := mongo.Connect(ctx, options.Client().ApplyURI(dbUrl))
+	dbUrl := "mongodb://" + configs.Configs.MongoDBInfo.Host + ":" + configs.Configs.MongoDBInfo.Port
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(dbUrl))
 
-			if err != nil {
-				panic("MongoDB connection failed! in services/models/mongodb_connection.go : " + err.Error())
-			}
-
-			db := client.Database(configs.Configs.MongoDBInfo.DbName)
-
-			dbConnection = &DBConnection{
-				client: client,
-				db:     db,
-			}
-		}
+	if err != nil {
+		panic("MongoDB connection failed! in services/models/mongodb_connection.go : " + err.Error())
 	}
 
-	return dbConnection
+	db := client.Database(configs.Configs.MongoDBInfo.DbName)
+
+	return &DBConnection{
+		client: client,
+		db:     db,
+	}
 }
 
 func (dbconn *DBConnection) Close() {
