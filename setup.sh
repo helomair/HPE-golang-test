@@ -40,7 +40,6 @@ go mod download
 # Check or install docker
 echo
 echo "Check Docker installed."
-docker -v
 
 if ! command -v docker > /dev/null; then
     echo "Docker installed check failed, install it."
@@ -83,7 +82,7 @@ if [ ! "$(sudo docker ps -a -q -f name=$MONGODB_CONTAINER)" ]; then
         # cleanup
         sudo docker rm $MONGODB_CONTAINER
     fi
-    # run your container
+    # run container
     sudo docker run --name $MONGODB_CONTAINER -v $(pwd)/mongodb-data:/data/db -d -p 27017:27017 --rm mongo:4.4
 fi
 

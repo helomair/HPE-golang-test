@@ -14,6 +14,7 @@ var UserModel *UserMessageModel
 type UserMessage struct {
 	ID         string    `bson:"_id,omitempty"`
 	UserID     string    `bson:"user_id"`
+	ReplyToken string    `bson:"reply_token"`
 	Content    string    `bson:"content"`
 	CreateTime time.Time `bson:"create_time"`
 }
