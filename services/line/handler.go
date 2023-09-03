@@ -31,7 +31,7 @@ func GetLineBotHandlerInstance() *LineBotHandler {
 		if lineBotHandler == nil {
 			bot, err := lineSDK.New(configs.Configs.LineInfo.Secret, configs.Configs.LineInfo.AccessToken)
 			if err != nil {
-				panic("Line bot connection failed! in service/line/setup.go")
+				panic("Line bot connection failed! in service/line/setup.go : " + err.Error())
 			}
 
 			lineBotHandler = &LineBotHandler{bot: bot}

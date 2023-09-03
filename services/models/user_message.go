@@ -12,15 +12,19 @@ import (
 var UserModel *UserMessageModel
 
 type UserMessage struct {
-	ID         string    `bson:"_id,omitempty"`
-	UserID     string    `bson:"user_id"`
-	ReplyToken string    `bson:"reply_token"`
-	Content    string    `bson:"content"`
-	CreateTime time.Time `bson:"create_time"`
+	ID         string    `bson:"_id,omitempty" json:"_id"`
+	UserID     string    `bson:"user_id" json:"user_id"`
+	ReplyToken string    `bson:"reply_token" json:"reply_token"`
+	Content    string    `bson:"content" json:"content"`
+	CreateTime time.Time `bson:"create_time" json:"create_time"`
 }
 
 type UserMessageModel struct {
 	dbconn *DBConnection
+}
+
+func init() {
+	UserModel = InitUserModel()
 }
 
 func InitUserModel() *UserMessageModel {
@@ -33,22 +37,27 @@ func (model *UserMessageModel) Close() {
 	model.dbconn.Close()
 }
 
-func (model *UserMessageModel) Save(usermsg []UserMessage) error {
+// Save a slice of UserMessage to db
+func (model *UserMessageModel) Save(usermsg []UserMessage, targetCollection string) error {
 	if len(usermsg) == 0 {
 		return errors.New("UserMessageModel.Save : input usermsg is empty")
 	}
 
-	collection := model.dbconn.db.Collection("user_messages")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := model.dbconn.db.Collection(targetCollection)
 	newDocs := model.insertManyTransfer(usermsg)
-	_, err := collection.InsertMany(context.Background(), newDocs)
+	_, err := collection.InsertMany(ctx, newDocs)
 	return err
 }
 
-func (model *UserMessageModel) QueryAll() ([]UserMessage, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+// Query all documents from db
+func (model *UserMessageModel) QueryAll(targetCollection string) ([]UserMessage, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := model.dbconn.db.Collection("user_messages")
+	collection := model.dbconn.db.Collection(targetCollection)
 	cursor, err := collection.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, err
@@ -68,11 +77,11 @@ func (model *UserMessageModel) QueryAll() ([]UserMessage, error) {
 	return userMessages, nil
 }
 
-func (model *UserMessageModel) QueryByUser(userID string) ([]UserMessage, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+func (model *UserMessageModel) QueryByUser(userID string, targetCollection string) ([]UserMessage, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := model.dbconn.db.Collection("user_messages")
+	collection := model.dbconn.db.Collection(targetCollection)
 
 	cursor, err := collection.Find(ctx, bson.M{"user_id": userID})
 	if err != nil {

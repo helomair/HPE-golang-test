@@ -6,11 +6,11 @@
     "MongoDBInfo": {
         "host": "127.0.0.1",
         "port": "27017",
-        "db"  : "HPE-golang-test"
+        "dbname"  : "test"
     },
     "LineInfo": {
         "id": "****",
         "secret" : "****",
-        access_token : "****"
+        "accesstoken" : "****"
     }
 }

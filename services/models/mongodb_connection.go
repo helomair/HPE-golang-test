@@ -16,6 +16,10 @@ type DBConnection struct {
 	db     *mongo.Database
 }
 
+func init() {
+	DBConn = InitDBConnection()
+}
+
 func InitDBConnection() *DBConnection {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

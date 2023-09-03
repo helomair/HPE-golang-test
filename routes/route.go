@@ -14,7 +14,13 @@ func RouteSettings(server *gin.Engine) {
 		})
 	})
 
+	// Line Webhook
 	server.POST("/line-message-webhook", controllers.MessageWebhook)
 
+	// @param : message String
 	server.POST("/broadcast", controllers.Broadcast)
+
+	// Query messages from db
+	server.GET("/user-messages", controllers.MessageQuery)
+	server.GET("/user-messages/:user_id", controllers.MessageQuery)
 }

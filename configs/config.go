@@ -41,3 +41,7 @@ func ConfigInit() {
 		panic("Config file read error : " + err.Error())
 	}
 }
+
+func init() {
+	ConfigInit()
+}

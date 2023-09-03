@@ -71,7 +71,11 @@ sudo docker run --name $MONGODB_CONTAINER -v $(pwd)/mongodb-data:/data/db -d -p 
 
 ## APIs
 ```sh
-GET "/" : index, only for check server is running
+GET "/" : Only for check server is running
+
+GET "/user-messages" : Get ALL users' messages
+
+GET "/user-messages/:user_id" : Get user messages by specific user
 
 POST "/line-message-webhook" : Line webhook endpoint
 
