@@ -16,6 +16,7 @@ type UserMessage struct {
 	UserID     string    `bson:"user_id" json:"user_id"`
 	ReplyToken string    `bson:"reply_token" json:"reply_token"`
 	Content    string    `bson:"content" json:"content"`
+	ExpireTime time.Time `bson:"expire_time" json:"expire_time"`
 	CreateTime time.Time `bson:"create_time" json:"create_time"`
 }
 
@@ -38,8 +39,8 @@ func (model *UserMessageModel) Close() {
 }
 
 // Save a slice of UserMessage to db
-func (model *UserMessageModel) Save(usermsg []UserMessage, targetCollection string) error {
-	if len(usermsg) == 0 {
+func (model *UserMessageModel) Save(usermsg UserMessage, targetCollection string) error {
+	if usermsg == (UserMessage{}) {
 		return errors.New("UserMessageModel.Save : input usermsg is empty")
 	}
 
@@ -47,8 +48,7 @@ func (model *UserMessageModel) Save(usermsg []UserMessage, targetCollection stri
 	defer cancel()
 
 	collection := model.dbconn.db.Collection(targetCollection)
-	newDocs := model.insertManyTransfer(usermsg)
-	_, err := collection.InsertMany(ctx, newDocs)
+	_, err := collection.InsertOne(ctx, usermsg)
 	return err
 }
 
@@ -101,13 +101,4 @@ func (model *UserMessageModel) QueryByUser(userID string, targetCollection strin
 	}
 
 	return userMessages, nil
-}
-
-func (model *UserMessageModel) insertManyTransfer(inputs []UserMessage) []interface{} {
-	var ret []interface{}
-	for _, t := range inputs {
-		ret = append(ret, t)
-	}
-
-	return ret
 }

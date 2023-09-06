@@ -15,19 +15,13 @@ func MessageWebhook(ctx *gin.Context) {
 	lineHandler := line.GetLineBotHandlerInstance()
 
 	// Parse line message to model.UserMessage
-	userMessages := lineHandler.MessageParse(ctx.Request)
+	event, _ := lineHandler.MessageParse(ctx.Request)
 
-	// Save to db
-	if err := models.UserModel.Save(userMessages, targetCollection); err != nil {
-		// reply error to user
-		for k, v := range userMessages {
-			userMessages[k].Content = "Sorry, server save message to db failed, msg : " + v.Content
-		}
-		log.Println("Save messages to db failed, error msg : " + err.Error())
-	}
+	// Verify event & start event flow
+	sendingMessage := lineHandler.VerifyEvent(event)
 
 	// Reply
-	lineHandler.SendMessage(userMessages, true)
+	lineHandler.SendMessage(sendingMessage, true)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": 0,
