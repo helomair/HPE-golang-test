@@ -15,10 +15,10 @@ func MessageWebhook(ctx *gin.Context) {
 	lineHandler := line.GetLineBotHandlerInstance()
 
 	// Parse line message to model.UserMessage
-	event, _ := lineHandler.MessageParse(ctx.Request)
+	sendingMessage, _ := lineHandler.ParseRequestAndMakeMessage(ctx.Request)
 
 	// Verify event & start event flow
-	sendingMessage := line.LineVerifyEvent(event)
+	sendingMessage.VerifyEvent()
 
 	// Reply
 	lineHandler.SendMessage(sendingMessage, true)

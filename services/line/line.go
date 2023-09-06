@@ -15,11 +15,6 @@ type LineBotHandler struct {
 	bot *lineSDK.Client
 }
 
-type lineBotMessage struct {
-	message     lineSDK.SendingMessage
-	userMessage models.UserMessage
-}
-
 var mutex sync.Mutex
 var lineBotHandler *LineBotHandler
 
@@ -40,24 +35,27 @@ func GetLineBotHandlerInstance() *LineBotHandler {
 	return lineBotHandler
 }
 
-func (handler *LineBotHandler) MessageParse(request *http.Request) (*lineSDK.Event, error) {
+func (handler *LineBotHandler) ParseRequestAndMakeMessage(request *http.Request) (lineBotMessage, error) {
 	events, err := handler.bot.ParseRequest(request)
+	ret := lineBotMessage{}
 	if err != nil {
 		log.Println(err.Error())
-		return nil, err
+		return ret, err
 	}
 
 	if len(events) == 0 {
-		return nil, errors.New("some error occurs when parse request")
+		return ret, errors.New("some error occurs when parse request")
 	}
 
-	return events[0], nil
+	ret.event = events[0]
+
+	return ret, nil
 }
 
 func (handler *LineBotHandler) SendMessage(message lineBotMessage, isReply bool) {
 	var err error
 
-	if message == (lineBotMessage{}) {
+	if message.userMessage == (models.UserMessage{}) {
 		return
 	}
 

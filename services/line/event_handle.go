@@ -2,39 +2,78 @@ package line
 
 import (
 	commandflow "HPE-golang-test/services/command-flow"
+	"HPE-golang-test/services/models"
+	"strings"
+	"time"
 
 	lineSDK "github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-func LineVerifyEvent(event *lineSDK.Event) lineBotMessage {
-	lineMsg := lineBotMessage{}
+type lineBotMessage struct {
+	event       *lineSDK.Event
+	message     lineSDK.SendingMessage
+	userMessage models.UserMessage
+}
 
-	switch event.Type {
+func (msg *lineBotMessage) VerifyEvent() {
+	switch msg.event.Type {
 	case lineSDK.EventTypeMessage:
-		lineMsg = handleMessage(event)
+		msg.handleMessage()
 
 	case lineSDK.EventTypePostback:
-		handlePostBack(event)
+		msg.handlePostBack()
 	}
-
-	return lineMsg
 }
 
-func handlePostBack(event *lineSDK.Event) {
-	params := parseData(event)
+func (msg *lineBotMessage) handlePostBack() {
+	params := parseData(msg.event.Postback.Data)
 	command := params[1]
-
-	commandflow.FlowControl(command, params[2:])
+	commandflow.FlowStart(command, params[2:])
 }
 
-func handleMessage(event *lineSDK.Event) lineBotMessage {
-	lineMsg := makeLineBotMessage(event)
+func (msg *lineBotMessage) handleMessage() {
+	msg.fillMessageDatas()
 
-	if errmsg := messageValidate(lineMsg.userMessage.Content); errmsg != "" {
-		lineMsg.message = lineSDK.NewTextMessage(errmsg)
+	// only need "?" command, throw away others
+	// TODO: Might handle more content in future
+	if len(msg.userMessage.Content) == 0 {
+		msg.message = lineSDK.NewTextMessage("command empty")
+	} else if len(msg.userMessage.Content) > 1 {
+		msg.message = lineSDK.NewTextMessage("only handle '?' command, give it a try")
 	} else {
-		lineMsg.message = commandflow.FlowControl(lineMsg.userMessage.Content, nil)
+		msg.message = commandflow.FlowStart(msg.userMessage.Content, nil)
+	}
+}
+
+// Fill all lineBotMessage datas
+func (msg *lineBotMessage) fillMessageDatas() {
+	msg.userMessage = models.UserMessage{
+		UserID:     msg.event.Source.UserID,
+		ReplyToken: msg.event.ReplyToken,
+		CreateTime: time.Now(),
 	}
 
-	return lineMsg
+	msg.getContentsFromEvent()
+}
+
+// Get event, fill message & userMessage.Content datas.
+func (msg *lineBotMessage) getContentsFromEvent() {
+	switch msg.event.Message.(type) {
+	case *lineSDK.TextMessage:
+		msg.message = msg.event.Message.(*lineSDK.TextMessage)
+		msg.userMessage.Content = msg.event.Message.(*lineSDK.TextMessage).Text
+	}
+}
+
+// -------------------------------------------
+
+func parseData(data string) []string {
+	datas := strings.Split(data, "&")
+	params := []string{}
+
+	for _, v := range datas {
+		params = append(params, strings.Split(v, "=")...)
+	}
+
+	return params
 }

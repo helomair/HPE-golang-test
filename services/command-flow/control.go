@@ -7,7 +7,7 @@ import (
 	lineSDK "github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-func FlowControl(command string, params []string) lineSDK.SendingMessage {
+func FlowStart(command string, params []string) lineSDK.SendingMessage {
 	var ret lineSDK.SendingMessage
 
 	log.Println(command)
