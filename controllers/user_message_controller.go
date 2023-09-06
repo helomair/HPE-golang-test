@@ -18,7 +18,7 @@ func MessageWebhook(ctx *gin.Context) {
 	event, _ := lineHandler.MessageParse(ctx.Request)
 
 	// Verify event & start event flow
-	sendingMessage := lineHandler.VerifyEvent(event)
+	sendingMessage := line.LineVerifyEvent(event)
 
 	// Reply
 	lineHandler.SendMessage(sendingMessage, true)

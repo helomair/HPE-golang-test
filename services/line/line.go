@@ -54,20 +54,6 @@ func (handler *LineBotHandler) MessageParse(request *http.Request) (*lineSDK.Eve
 	return events[0], nil
 }
 
-func (handler *LineBotHandler) VerifyEvent(event *lineSDK.Event) lineBotMessage {
-	lineMsg := lineBotMessage{}
-
-	switch event.Type {
-	case lineSDK.EventTypeMessage:
-		lineMsg = handleMessage(event)
-
-	case lineSDK.EventTypePostback:
-		handlePostBack(event)
-	}
-
-	return lineMsg
-}
-
 func (handler *LineBotHandler) SendMessage(message lineBotMessage, isReply bool) {
 	var err error
 
