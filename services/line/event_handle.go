@@ -2,20 +2,22 @@ package line
 
 import (
 	commandflow "HPE-golang-test/services/command-flow"
+	"HPE-golang-test/services/helper"
 	"HPE-golang-test/services/models"
-	"strings"
 	"time"
 
 	lineSDK "github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-type lineBotMessage struct {
+type lineEventMessageHandler struct {
 	event       *lineSDK.Event
 	message     lineSDK.SendingMessage
 	userMessage models.UserMessage
 }
 
-func (msg *lineBotMessage) VerifyEvent() {
+func (msg *lineEventMessageHandler) VerifyEventAndStartEventFlow() {
+	msg.fillMessageDatas()
+
 	switch msg.event.Type {
 	case lineSDK.EventTypeMessage:
 		msg.handleMessage()
@@ -25,15 +27,17 @@ func (msg *lineBotMessage) VerifyEvent() {
 	}
 }
 
-func (msg *lineBotMessage) handlePostBack() {
-	params := parseData(msg.event.Postback.Data)
-	command := params[1]
-	commandflow.FlowStart(command, params[2:])
+func (msg *lineEventMessageHandler) handlePostBack() {
+	params := helper.ParseDataToParams(msg.event.Postback.Data)
+
+	if msg.event.Postback.Params != nil {
+		params["datetime"] = msg.event.Postback.Params.Datetime
+	}
+
+	msg.message = commandflow.FlowStart(params["command"], params)
 }
 
-func (msg *lineBotMessage) handleMessage() {
-	msg.fillMessageDatas()
-
+func (msg *lineEventMessageHandler) handleMessage() {
 	// only need "?" command, throw away others
 	// TODO: Might handle more content in future
 	if len(msg.userMessage.Content) == 0 {
@@ -45,8 +49,8 @@ func (msg *lineBotMessage) handleMessage() {
 	}
 }
 
-// Fill all lineBotMessage datas
-func (msg *lineBotMessage) fillMessageDatas() {
+// Fill all lineEventMessageHandler datas
+func (msg *lineEventMessageHandler) fillMessageDatas() {
 	msg.userMessage = models.UserMessage{
 		UserID:     msg.event.Source.UserID,
 		ReplyToken: msg.event.ReplyToken,
@@ -57,23 +61,10 @@ func (msg *lineBotMessage) fillMessageDatas() {
 }
 
 // Get event, fill message & userMessage.Content datas.
-func (msg *lineBotMessage) getContentsFromEvent() {
+func (msg *lineEventMessageHandler) getContentsFromEvent() {
 	switch msg.event.Message.(type) {
 	case *lineSDK.TextMessage:
 		msg.message = msg.event.Message.(*lineSDK.TextMessage)
 		msg.userMessage.Content = msg.event.Message.(*lineSDK.TextMessage).Text
 	}
-}
-
-// -------------------------------------------
-
-func parseData(data string) []string {
-	datas := strings.Split(data, "&")
-	params := []string{}
-
-	for _, v := range datas {
-		params = append(params, strings.Split(v, "=")...)
-	}
-
-	return params
 }

@@ -12,16 +12,16 @@ import (
 var targetCollection string = "user_messages"
 
 func MessageWebhook(ctx *gin.Context) {
-	lineHandler := line.GetLineBotHandlerInstance()
+	lineHandler := line.GetLineBotServiceInstance()
 
 	// Parse line message to model.UserMessage
-	sendingMessage, _ := lineHandler.ParseRequestAndMakeMessage(ctx.Request)
+	lineEventMessage, _ := lineHandler.ParseRequestAndMakeMessage(ctx.Request)
 
 	// Verify event & start event flow
-	sendingMessage.VerifyEvent()
+	lineEventMessage.VerifyEventAndStartEventFlow()
 
 	// Reply
-	lineHandler.SendMessage(sendingMessage, true)
+	lineHandler.Push(lineEventMessage)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": 0,
@@ -36,7 +36,7 @@ func Broadcast(ctx *gin.Context) {
 	var responseMsg string = "Broadcast Done"
 
 	if len(message) != 0 {
-		if err := line.GetLineBotHandlerInstance().Broadcast(message); err != nil {
+		if err := line.GetLineBotServiceInstance().Broadcast(message); err != nil {
 			status = 1
 			responseStatus = http.StatusBadRequest
 			responseMsg = "Braodcast failed, error : " + err.Error()

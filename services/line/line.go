@@ -2,7 +2,7 @@ package line
 
 import (
 	"HPE-golang-test/configs"
-	"HPE-golang-test/services/models"
+	"HPE-golang-test/services/logger"
 	"errors"
 	"log"
 	"net/http"
@@ -11,33 +11,33 @@ import (
 	lineSDK "github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-type LineBotHandler struct {
+type LineBotService struct {
 	bot *lineSDK.Client
 }
 
 var mutex sync.Mutex
-var lineBotHandler *LineBotHandler
+var lineBotService *LineBotService
 
-func GetLineBotHandlerInstance() *LineBotHandler {
-	if lineBotHandler == nil {
+func GetLineBotServiceInstance() *LineBotService {
+	if lineBotService == nil {
 		mutex.Lock()
 		defer mutex.Unlock()
-		if lineBotHandler == nil {
+		if lineBotService == nil {
 			bot, err := lineSDK.New(configs.Configs.LineInfo.Secret, configs.Configs.LineInfo.AccessToken)
 			if err != nil {
 				panic("Line bot connection failed! in service/line/setup.go : " + err.Error())
 			}
 
-			lineBotHandler = &LineBotHandler{bot: bot}
+			lineBotService = &LineBotService{bot: bot}
 		}
 	}
 
-	return lineBotHandler
+	return lineBotService
 }
 
-func (handler *LineBotHandler) ParseRequestAndMakeMessage(request *http.Request) (lineBotMessage, error) {
+func (handler *LineBotService) ParseRequestAndMakeMessage(request *http.Request) (lineEventMessageHandler, error) {
 	events, err := handler.bot.ParseRequest(request)
-	ret := lineBotMessage{}
+	ret := lineEventMessageHandler{}
 	if err != nil {
 		log.Println(err.Error())
 		return ret, err
@@ -52,28 +52,24 @@ func (handler *LineBotHandler) ParseRequestAndMakeMessage(request *http.Request)
 	return ret, nil
 }
 
-func (handler *LineBotHandler) SendMessage(message lineBotMessage, isReply bool) {
-	var err error
-
-	if message.userMessage == (models.UserMessage{}) {
-		return
-	}
-
-	if !isReply {
-		_, err = handler.bot.PushMessage(message.userMessage.UserID, message.message).Do()
-	} else {
-		_, err = handler.bot.ReplyMessage(message.userMessage.ReplyToken, message.message).Do()
-	}
-
-	if err != nil {
-		log.Println(err.Error())
+func (handler *LineBotService) Push(message lineEventMessageHandler) {
+	target := message.userMessage.UserID
+	if target != "" {
+		_, err := handler.bot.PushMessage(target, message.message).Do()
+		logger.ErrorFunc(err)
 	}
 }
 
-func (handler *LineBotHandler) Broadcast(message string) error {
-	_, err := handler.bot.BroadcastMessage(lineSDK.NewTextMessage(message)).Do()
-	if err != nil {
-		log.Println(err.Error())
+func (handler *LineBotService) Reply(message lineEventMessageHandler) {
+	replyToken := message.userMessage.ReplyToken
+	if replyToken != "" {
+		_, err := handler.bot.ReplyMessage(replyToken, message.message).Do()
+		logger.ErrorFunc(err)
 	}
+}
+
+func (handler *LineBotService) Broadcast(message string) error {
+	_, err := handler.bot.BroadcastMessage(lineSDK.NewTextMessage(message)).Do()
+	logger.ErrorFunc(err)
 	return err
 }

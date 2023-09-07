@@ -12,7 +12,14 @@ func AvailableCommandsList() *lineSDK.TemplateMessage {
 
 	template := lineSDK.NewButtonsTemplate("", "Available Commands", "These are supported commands", queryButton, newButton, updateButton, deleteButton)
 
-	message := lineSDK.NewTemplateMessage("command not found", template)
+	return lineSDK.NewTemplateMessage("command not found", template)
+}
 
-	return message
+// Create datetime picker action, data could be command=New&param1=?....
+func DatetimePicker(data string) *lineSDK.TemplateMessage {
+	action := lineSDK.NewDatetimePickerAction("Select date", data, "datetime", "", "", "")
+
+	template := lineSDK.NewButtonsTemplate("", "Select date & time", "please select", action)
+
+	return lineSDK.NewTemplateMessage("Select date & time", template)
 }

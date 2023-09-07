@@ -7,7 +7,7 @@ import (
 	lineSDK "github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-func FlowStart(command string, params []string) lineSDK.SendingMessage {
+func FlowStart(command string, params map[string]string) lineSDK.SendingMessage {
 	var ret lineSDK.SendingMessage
 
 	log.Println(command)
@@ -16,7 +16,8 @@ func FlowStart(command string, params []string) lineSDK.SendingMessage {
 	switch command {
 	case "?":
 		ret = component.AvailableCommandsList()
+	case "New":
+		ret = NewReservationFlow(params)
 	}
-
 	return ret
 }
