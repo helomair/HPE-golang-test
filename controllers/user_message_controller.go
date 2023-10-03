@@ -9,8 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var targetCollection string = "user_messages"
-
 func MessageWebhook(ctx *gin.Context) {
 	lineHandler := line.GetLineBotServiceInstance()
 
@@ -60,9 +58,9 @@ func MessageQuery(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 
 	if len(userId) == 0 { // query all
-		userMessages, err = models.UserModel.QueryAll(targetCollection)
+		userMessages, err = models.UserModel.QueryAll()
 	} else {
-		userMessages, err = models.UserModel.QueryByUser(userId, targetCollection)
+		userMessages, err = models.UserModel.QueryByUser(userId)
 	}
 	if err != nil {
 		log.Println("MessageQuery failed : " + err.Error())

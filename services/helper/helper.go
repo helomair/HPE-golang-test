@@ -17,7 +17,7 @@ func JoinParamsToData(params map[string]string) string {
 	data := ""
 
 	for key, value := range params {
-		data += key + "=" + value
+		data += key + "=" + value + "&"
 	}
 
 	return data
