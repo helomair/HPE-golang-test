@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	defer models.UserModel.Close()
+	defer models.ReservationModel.Close()
 	server := routes.RouteSettings()
 	server.Run()
 }

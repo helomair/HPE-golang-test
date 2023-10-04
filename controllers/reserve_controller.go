@@ -26,7 +26,7 @@ func MakeReserveForm(ctx *gin.Context) {
 
 func ReserveNew(ctx *gin.Context) {
 
-	message := models.UserMessage{
+	reserve := models.Reserve{
 		UserID:     ctx.PostForm("user_id"),
 		ReplyToken: ctx.PostForm("reply_token"),
 		Content:    ctx.PostForm("reserve_content"),
@@ -34,7 +34,7 @@ func ReserveNew(ctx *gin.Context) {
 		CreateTime: time.Now(),
 	}
 
-	invalidMsg := validate.Run(message, "struct")
+	invalidMsg := validate.Run(reserve, "struct")
 	if len(invalidMsg) > 0 {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": invalidMsg,
@@ -42,11 +42,37 @@ func ReserveNew(ctx *gin.Context) {
 		return
 	}
 
-	log.Println(message)
-	id, _ := models.UserModel.Save(message)
+	log.Println(reserve)
+	id, _ := models.ReservationModel.Save(reserve)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message":    "New reserve done",
 		"reserve_id": id,
 	})
+}
+
+func ReserveQuery(ctx *gin.Context) {
+	var reservations []models.Reserve
+	var err error
+
+	userId := ctx.Param("user_id")
+
+	if len(userId) == 0 { // query all
+		reservations, err = models.ReservationModel.QueryAll()
+	} else {
+		reservations, err = models.ReservationModel.QueryByUser(userId)
+	}
+	if err != nil {
+		log.Println("MessageQuery failed : " + err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  1,
+			"message": "Message query failed, error msg : " + err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(
+		http.StatusOK,
+		reservations,
+	)
 }

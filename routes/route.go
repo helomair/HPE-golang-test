@@ -22,11 +22,9 @@ func RouteSettings() *gin.Engine {
 	// @param : message String
 	server.POST("/broadcast", controllers.Broadcast)
 
-	// Query messages from db
-	server.GET("/user-messages", controllers.MessageQuery)
-	server.GET("/user-messages/:user_id", controllers.MessageQuery)
-
 	// Reserve
+	server.GET("/reserve", controllers.ReserveQuery)
+	server.GET("/reserve/:user_id", controllers.ReserveQuery)
 	server.GET("/reserve-form/:user_id/:reply_token", controllers.MakeReserveForm)
 	server.POST("/reserve", controllers.ReserveNew)
 

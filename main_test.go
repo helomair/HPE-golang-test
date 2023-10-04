@@ -74,14 +74,14 @@ func Test_reserveContentTooLong(t *testing.T) {
 	assert.Contains(t, w.Body.String(), "Error")
 }
 
-func reserveVerifyDBAndCleanUp(t *testing.T, jsonData string) ([]models.UserMessage, error) {
+func reserveVerifyDBAndCleanUp(t *testing.T, jsonData string) ([]models.Reserve, error) {
 	var v interface{}
 	json.Unmarshal([]byte(jsonData), &v)
 	data := v.(map[string]string)
 
 	reserveId := data["reserve_id"]
 
-	reserve, err := models.UserModel.QueryById(reserveId)
+	reserve, err := models.ReservationModel.QueryById(reserveId)
 
 	//TODO: Clean up
 

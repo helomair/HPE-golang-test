@@ -53,7 +53,7 @@ func (handler *LineBotService) ParseRequestAndMakeMessage(request *http.Request)
 }
 
 func (handler *LineBotService) Push(message lineEventMessageHandler) {
-	target := message.userMessage.UserID
+	target := message.userId
 	if target != "" {
 		_, err := handler.bot.PushMessage(target, message.message).Do()
 		logger.ErrorFunc(err)
@@ -61,7 +61,7 @@ func (handler *LineBotService) Push(message lineEventMessageHandler) {
 }
 
 func (handler *LineBotService) Reply(message lineEventMessageHandler) {
-	replyToken := message.userMessage.ReplyToken
+	replyToken := message.replyToken
 	if replyToken != "" {
 		_, err := handler.bot.ReplyMessage(replyToken, message.message).Do()
 		logger.ErrorFunc(err)

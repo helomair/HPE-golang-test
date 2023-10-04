@@ -10,9 +10,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var UserModel *UserMessageModel
+var ReservationModel *ReserveModel
 
-type UserMessage struct {
+type Reserve struct {
 	ID         string    `bson:"_id,omitempty" json:"_id"`
 	UserID     string    `bson:"user_id" json:"user_id" validate:"required,max=35,min=30"`
 	ReplyToken string    `bson:"reply_token" json:"reply_token" validate:"required,max=35,min=30"`
@@ -21,60 +21,60 @@ type UserMessage struct {
 	CreateTime time.Time `bson:"create_time" json:"create_time"`
 }
 
-type UserMessageModel struct {
+type ReserveModel struct {
 	dbconn *DBConnection
 }
 
 func init() {
-	UserModel = InitUserModel()
+	ReservationModel = InitReservationModel()
 }
 
-func InitUserModel() *UserMessageModel {
-	return &UserMessageModel{
+func InitReservationModel() *ReserveModel {
+	return &ReserveModel{
 		dbconn: DBConn,
 	}
 }
 
-func (model *UserMessageModel) Close() {
+func (model *ReserveModel) Close() {
 	model.dbconn.Close()
 }
 
-// Save a slice of UserMessage to db
-func (model *UserMessageModel) Save(usermsg UserMessage) (string, error) {
-	if usermsg == (UserMessage{}) {
-		return "", errors.New("UserMessageModel.Save : input usermsg is empty")
+// Save a slice of Reserve to db
+func (model *ReserveModel) Save(usermsg Reserve) (string, error) {
+	if usermsg == (Reserve{}) {
+		return "", errors.New("ReserveModel.Save : input usermsg is empty")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := model.dbconn.db.Collection("user_messages")
+	collection := model.dbconn.db.Collection("reservations")
 	result, err := collection.InsertOne(ctx, usermsg)
 	id := result.InsertedID.(primitive.ObjectID)
 	return id.Hex(), err
 }
 
 // Query all documents from db
-func (model *UserMessageModel) QueryAll() ([]UserMessage, error) {
+func (model *ReserveModel) QueryAll() ([]Reserve, error) {
 	return model.query(bson.M{})
 }
 
-func (model *UserMessageModel) QueryById(id string) ([]UserMessage, error) {
+func (model *ReserveModel) QueryById(id string) ([]Reserve, error) {
 	return model.query(bson.M{"_id": id})
 }
 
-func (model *UserMessageModel) QueryByUser(userID string) ([]UserMessage, error) {
+func (model *ReserveModel) QueryByUser(userID string) ([]Reserve, error) {
 	return model.query(bson.M{"user_id": userID})
 }
 
-// func (model *UserMessageModel) DeleteById(id string) error {
+// func (model *ReserveModel) DeleteById(id string) error {
 // }
 
-func (model *UserMessageModel) query(filter interface{}) ([]UserMessage, error) {
+func (model *ReserveModel) query(filter interface{}) ([]Reserve, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := model.dbconn.db.Collection("user_messages")
+	collection := model.dbconn.db.Collection("reservations")
 
 	cursor, err := collection.Find(ctx, filter)
 
@@ -83,16 +83,16 @@ func (model *UserMessageModel) query(filter interface{}) ([]UserMessage, error) 
 	}
 	defer cursor.Close(ctx)
 
-	var userMessages []UserMessage
+	var Reserves []Reserve
 	for cursor.Next(ctx) {
-		var msg UserMessage
+		var msg Reserve
 		if err := cursor.Decode(&msg); err != nil {
-			log.Println("User message decode error! " + err.Error())
+			log.Println("Reservation decode error! " + err.Error())
 			continue
 		}
 
-		userMessages = append(userMessages, msg)
+		Reserves = append(Reserves, msg)
 	}
 
-	return userMessages, nil
+	return Reserves, nil
 }
