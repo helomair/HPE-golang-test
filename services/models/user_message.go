@@ -12,10 +12,10 @@ import (
 var UserModel *UserMessageModel
 
 type UserMessage struct {
-	ID         string    `bson:"_id,omitempty" json:"_id" validate:"mongodb"`
-	UserID     string    `bson:"user_id" json:"user_id" validate:"required"`
-	ReplyToken string    `bson:"reply_token" json:"reply_token" validate:"required"`
-	Content    string    `bson:"content" json:"content"`
+	ID         string    `bson:"_id,omitempty" json:"_id"`
+	UserID     string    `bson:"user_id" json:"user_id" validate:"required,max=35,min=30"`
+	ReplyToken string    `bson:"reply_token" json:"reply_token" validate:"required,max=35,min=30"`
+	Content    string    `bson:"content" json:"content" validate:"max=300"`
 	ExpireTime time.Time `bson:"expire_time" json:"expire_time"`
 	CreateTime time.Time `bson:"create_time" json:"create_time"`
 }

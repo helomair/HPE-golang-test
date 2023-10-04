@@ -34,6 +34,9 @@ func (msg *lineEventMessageHandler) handlePostBack() {
 		params["datetime"] = msg.event.Postback.Params.Datetime
 	}
 
+	params["user_id"] = msg.userMessage.UserID
+	params["reply_token"] = msg.userMessage.ReplyToken
+
 	msg.message = commandflow.FlowStart(params["command"], params)
 }
 

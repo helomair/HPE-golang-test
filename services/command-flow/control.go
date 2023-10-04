@@ -17,7 +17,7 @@ func FlowStart(command string, params map[string]string) lineSDK.SendingMessage 
 	case "?":
 		ret = component.AvailableCommandsList()
 	case "New":
-		ret = NewReservationFlow(params)
+		ret = component.ReserveUrl(params)
 	}
 	return ret
 }
