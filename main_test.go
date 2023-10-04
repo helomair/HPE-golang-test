@@ -4,6 +4,7 @@ import (
 	"HPE-golang-test/routes"
 	"HPE-golang-test/services/models"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -41,12 +42,16 @@ func Test_reserveOK(t *testing.T) {
 	req, _ := http.NewRequest("POST", "/reserve", body)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	server.ServeHTTP(w, req)
+	reserve, _ := reserveVerifyDBAndCleanUp(t, w.Body.String())
 
 	// assert
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "message")
 	assert.Contains(t, w.Body.String(), "New reserve done")
 	assert.Contains(t, w.Body.String(), "reserve_id")
+	assert.Equal(t, reserve.UserID, data.Get("user_id"))
+	assert.Equal(t, reserve.ReplyToken, data.Get("reply_token"))
+	assert.Equal(t, reserve.Content, data.Get("reserve_content"))
 }
 
 func Test_reserveContentTooLong(t *testing.T) {
@@ -74,16 +79,19 @@ func Test_reserveContentTooLong(t *testing.T) {
 	assert.Contains(t, w.Body.String(), "Error")
 }
 
-func reserveVerifyDBAndCleanUp(t *testing.T, jsonData string) ([]models.Reserve, error) {
-	var v interface{}
+func reserveVerifyDBAndCleanUp(t *testing.T, jsonData string) (models.Reserve, error) {
+	v := make(map[string]interface{})
 	json.Unmarshal([]byte(jsonData), &v)
-	data := v.(map[string]string)
+	// data := v.(map[string]string)
 
-	reserveId := data["reserve_id"]
+	reserveId := fmt.Sprintf("%v", v["reserve_id"])
 
 	reserve, err := models.ReservationModel.QueryById(reserveId)
 
 	//TODO: Clean up
+	t.Cleanup(func() {
+		models.ReservationModel.DeleteById(reserve.ID)
+	})
 
 	return reserve, err
 }

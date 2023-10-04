@@ -8,6 +8,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var ReservationModel *ReserveModel
@@ -59,22 +60,24 @@ func (model *ReserveModel) QueryAll() ([]Reserve, error) {
 	return model.query(bson.M{})
 }
 
-func (model *ReserveModel) QueryById(id string) ([]Reserve, error) {
-	return model.query(bson.M{"_id": id})
+func (model *ReserveModel) QueryById(id string) (Reserve, error) {
+	objId, _ := primitive.ObjectIDFromHex(id)
+	ret, err := model.query(bson.M{"_id": objId})
+	return ret[0], err
 }
 
 func (model *ReserveModel) QueryByUser(userID string) ([]Reserve, error) {
 	return model.query(bson.M{"user_id": userID})
 }
 
-// func (model *ReserveModel) DeleteById(id string) error {
-// }
+func (model *ReserveModel) DeleteById(id string) error {
+	objId, _ := primitive.ObjectIDFromHex(id)
+	return model.delete(bson.M{"_id": objId})
+}
 
 func (model *ReserveModel) query(filter interface{}) ([]Reserve, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	collection, ctx, cancel := model.prepare()
 	defer cancel()
-
-	collection := model.dbconn.db.Collection("reservations")
 
 	cursor, err := collection.Find(ctx, filter)
 
@@ -95,4 +98,21 @@ func (model *ReserveModel) query(filter interface{}) ([]Reserve, error) {
 	}
 
 	return Reserves, nil
+}
+
+func (model *ReserveModel) delete(filter interface{}) error {
+	collection, ctx, cancel := model.prepare()
+	defer cancel()
+
+	_, err := collection.DeleteOne(ctx, filter)
+
+	return err
+}
+
+func (model *ReserveModel) prepare() (*mongo.Collection, context.Context, context.CancelFunc) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+	collection := model.dbconn.db.Collection("reservations")
+
+	return collection, ctx, cancel
 }
