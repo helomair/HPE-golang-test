@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var UserModel *UserMessageModel
@@ -39,51 +40,44 @@ func (model *UserMessageModel) Close() {
 }
 
 // Save a slice of UserMessage to db
-func (model *UserMessageModel) Save(usermsg UserMessage) error {
+func (model *UserMessageModel) Save(usermsg UserMessage) (string, error) {
 	if usermsg == (UserMessage{}) {
-		return errors.New("UserMessageModel.Save : input usermsg is empty")
+		return "", errors.New("UserMessageModel.Save : input usermsg is empty")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	collection := model.dbconn.db.Collection("user_messages")
-	_, err := collection.InsertOne(ctx, usermsg)
-	return err
+	result, err := collection.InsertOne(ctx, usermsg)
+	id := result.InsertedID.(primitive.ObjectID)
+	return id.Hex(), err
 }
 
 // Query all documents from db
 func (model *UserMessageModel) QueryAll() ([]UserMessage, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	return model.query(bson.M{})
+}
 
-	collection := model.dbconn.db.Collection("user_messages")
-	cursor, err := collection.Find(ctx, bson.M{})
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	var userMessages []UserMessage
-	for cursor.Next(ctx) {
-		var msg UserMessage
-		if err := cursor.Decode(&msg); err != nil {
-			log.Println("User message decode error! in services/models/user_messages.go -> QueryAll : " + err.Error())
-		}
-
-		userMessages = append(userMessages, msg)
-	}
-
-	return userMessages, nil
+func (model *UserMessageModel) QueryById(id string) ([]UserMessage, error) {
+	return model.query(bson.M{"_id": id})
 }
 
 func (model *UserMessageModel) QueryByUser(userID string) ([]UserMessage, error) {
+	return model.query(bson.M{"user_id": userID})
+}
+
+// func (model *UserMessageModel) DeleteById(id string) error {
+// }
+
+func (model *UserMessageModel) query(filter interface{}) ([]UserMessage, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	collection := model.dbconn.db.Collection("user_messages")
 
-	cursor, err := collection.Find(ctx, bson.M{"user_id": userID})
+	cursor, err := collection.Find(ctx, filter)
+
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +87,7 @@ func (model *UserMessageModel) QueryByUser(userID string) ([]UserMessage, error)
 	for cursor.Next(ctx) {
 		var msg UserMessage
 		if err := cursor.Decode(&msg); err != nil {
-			log.Println("User message decode error! in services/models/user_messages.go -> QueryByUser : " + err.Error())
+			log.Println("User message decode error! " + err.Error())
 			continue
 		}
 

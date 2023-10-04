@@ -6,7 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RouteSettings(server *gin.Engine) {
+func RouteSettings() *gin.Engine {
+	server := gin.Default()
 	server.LoadHTMLGlob("templates/*")
 	server.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{
@@ -28,4 +29,6 @@ func RouteSettings(server *gin.Engine) {
 	// Reserve
 	server.GET("/reserve-form/:user_id/:reply_token", controllers.MakeReserveForm)
 	server.POST("/reserve", controllers.ReserveNew)
+
+	return server
 }

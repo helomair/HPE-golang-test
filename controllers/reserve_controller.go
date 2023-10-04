@@ -39,8 +39,14 @@ func ReserveNew(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": invalidMsg,
 		})
+		return
 	}
 
 	log.Println(message)
-	models.UserModel.Save(message)
+	id, _ := models.UserModel.Save(message)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message":    "New reserve done",
+		"reserve_id": id,
+	})
 }
