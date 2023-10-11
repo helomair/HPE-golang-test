@@ -15,12 +15,16 @@ func AvailableCommandsList() *lineSDK.TemplateMessage {
 	return lineSDK.NewTemplateMessage("command not found", template)
 }
 
+func NormalMessage(text string) *lineSDK.TextMessage {
+	return lineSDK.NewTextMessage(text)
+}
+
 func ReserveUrl(params map[string]string) *lineSDK.TextMessage {
 	// TODO: url change back after test
 	// host := configs.Configs.ServerInfo.Host + ":" + configs.Configs.ServerInfo.Port
 	endpoint := "/reserve-form/" + params["user_id"] + "/" + params["reply_token"]
 	// url := "http://" + host + endpoint
-	url := "https://b63b-36-237-124-62.ngrok-free.app" + endpoint
+	url := "https://8b96-36-237-154-195.ngrok-free.app" + endpoint
 
 	return lineSDK.NewTextMessage(url)
 }

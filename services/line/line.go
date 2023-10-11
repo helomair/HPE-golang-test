@@ -35,9 +35,9 @@ func GetLineBotServiceInstance() *LineBotService {
 	return lineBotService
 }
 
-func (handler *LineBotService) ParseRequestAndMakeMessage(request *http.Request) (lineEventMessageHandler, error) {
+func (handler *LineBotService) ParseRequestAndMakeMessage(request *http.Request) (LineEventMessageHandler, error) {
 	events, err := handler.bot.ParseRequest(request)
-	ret := lineEventMessageHandler{}
+	ret := LineEventMessageHandler{}
 	if err != nil {
 		log.Println(err.Error())
 		return ret, err
@@ -47,23 +47,23 @@ func (handler *LineBotService) ParseRequestAndMakeMessage(request *http.Request)
 		return ret, errors.New("some error occurs when parse request")
 	}
 
-	ret.event = events[0]
+	ret.Event = events[0]
 
 	return ret, nil
 }
 
-func (handler *LineBotService) Push(message lineEventMessageHandler) {
-	target := message.userId
+func (handler *LineBotService) Push(message LineEventMessageHandler) {
+	target := message.UserId
 	if target != "" {
-		_, err := handler.bot.PushMessage(target, message.message).Do()
+		_, err := handler.bot.PushMessage(target, message.Message).Do()
 		logger.ErrorFunc(err)
 	}
 }
 
-func (handler *LineBotService) Reply(message lineEventMessageHandler) {
-	replyToken := message.replyToken
+func (handler *LineBotService) Reply(message LineEventMessageHandler) {
+	replyToken := message.ReplyToken
 	if replyToken != "" {
-		_, err := handler.bot.ReplyMessage(replyToken, message.message).Do()
+		_, err := handler.bot.ReplyMessage(replyToken, message.Message).Do()
 		logger.ErrorFunc(err)
 	}
 }

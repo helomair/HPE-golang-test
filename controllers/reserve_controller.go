@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"HPE-golang-test/services/component"
 	"HPE-golang-test/services/helper"
+	"HPE-golang-test/services/line"
 	"HPE-golang-test/services/models"
 	"HPE-golang-test/services/validate"
 	"log"
@@ -44,6 +46,13 @@ func ReserveNew(ctx *gin.Context) {
 
 	log.Println(reserve)
 	id, _ := models.ReservationModel.Save(reserve)
+
+	lineService := line.GetLineBotServiceInstance()
+	lineService.Push(line.LineEventMessageHandler{
+		UserId:     reserve.UserID,
+		ReplyToken: reserve.ReplyToken,
+		Message:    component.NormalMessage("New Reservation!\nExpire: " + reserve.ExpireTime.Format(time.RFC1123) + "\nContent: " + reserve.Content),
+	})
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message":    "New reserve done",

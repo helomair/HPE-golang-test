@@ -7,24 +7,24 @@ import (
 	lineSDK "github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-type lineEventMessageHandler struct {
-	event      *lineSDK.Event
-	message    lineSDK.SendingMessage
-	userId     string `validate:"required,max=35,min=30"`
-	replyToken string `validate:"required,max=35,min=30"`
-	content    string `validate:"max=300"`
+type LineEventMessageHandler struct {
+	Event      *lineSDK.Event
+	Message    lineSDK.SendingMessage
+	UserId     string `validate:"required,max=35,min=30"`
+	ReplyToken string `validate:"required,max=35,min=30"`
+	Content    string `validate:"max=300"`
 }
 
-// Fill all lineEventMessageHandler datas
-func (msg *lineEventMessageHandler) FillMessageDatas() {
-	msg.userId = msg.event.Source.UserID
-	msg.replyToken = msg.event.ReplyToken
+// Fill all LineEventMessageHandler datas
+func (msg *LineEventMessageHandler) FillMessageDatas() {
+	msg.UserId = msg.Event.Source.UserID
+	msg.ReplyToken = msg.Event.ReplyToken
 	msg.getContentsFromEvent()
 }
 
-func (msg *lineEventMessageHandler) VerifyEventAndStartEventFlow() {
+func (msg *LineEventMessageHandler) VerifyEventAndStartEventFlow() {
 
-	switch msg.event.Type {
+	switch msg.Event.Type {
 	case lineSDK.EventTypeMessage:
 		msg.handleMessage()
 
@@ -33,36 +33,36 @@ func (msg *lineEventMessageHandler) VerifyEventAndStartEventFlow() {
 	}
 }
 
-func (msg *lineEventMessageHandler) handlePostBack() {
-	params := helper.ParseDataToParams(msg.event.Postback.Data)
+func (msg *LineEventMessageHandler) handlePostBack() {
+	params := helper.ParseDataToParams(msg.Event.Postback.Data)
 
-	if msg.event.Postback.Params != nil {
-		params["datetime"] = msg.event.Postback.Params.Datetime
+	if msg.Event.Postback.Params != nil {
+		params["datetime"] = msg.Event.Postback.Params.Datetime
 	}
 
-	params["user_id"] = msg.userId
-	params["reply_token"] = msg.replyToken
+	params["user_id"] = msg.UserId
+	params["reply_token"] = msg.ReplyToken
 
-	msg.message = commandflow.FlowStart(params["command"], params)
+	msg.Message = commandflow.FlowStart(params["command"], params)
 }
 
-func (msg *lineEventMessageHandler) handleMessage() {
+func (msg *LineEventMessageHandler) handleMessage() {
 	// only need "?" command, throw away others
-	// TODO: Might handle more content in future
-	if len(msg.content) == 0 {
-		msg.message = lineSDK.NewTextMessage("command empty")
-	} else if len(msg.content) > 1 {
-		msg.message = lineSDK.NewTextMessage("only handle '?' command, give it a try")
+	// TODO: Might handle more Content in future
+	if len(msg.Content) == 0 {
+		msg.Message = lineSDK.NewTextMessage("command empty")
+	} else if len(msg.Content) > 1 {
+		msg.Message = lineSDK.NewTextMessage("only handle '?' command, give it a try")
 	} else {
-		msg.message = commandflow.FlowStart(msg.content, nil)
+		msg.Message = commandflow.FlowStart(msg.Content, nil)
 	}
 }
 
-// Get event, fill message & userMessage.Content datas.
-func (msg *lineEventMessageHandler) getContentsFromEvent() {
-	switch msg.event.Message.(type) {
+// Get Event, fill Message & userMessage.Content datas.
+func (msg *LineEventMessageHandler) getContentsFromEvent() {
+	switch msg.Event.Message.(type) {
 	case *lineSDK.TextMessage:
-		msg.message = msg.event.Message.(*lineSDK.TextMessage)
-		msg.content = msg.event.Message.(*lineSDK.TextMessage).Text
+		msg.Message = msg.Event.Message.(*lineSDK.TextMessage)
+		msg.Content = msg.Event.Message.(*lineSDK.TextMessage).Text
 	}
 }

@@ -9,15 +9,15 @@ import (
 )
 
 func MessageWebhook(ctx *gin.Context) {
-	lineHandler := line.GetLineBotServiceInstance()
+	lineService := line.GetLineBotServiceInstance()
 
-	lineEventMessage, _ := lineHandler.ParseRequestAndMakeMessage(ctx.Request)
+	lineEventMessage, _ := lineService.ParseRequestAndMakeMessage(ctx.Request)
 	lineEventMessage.FillMessageDatas()
 	validate.Run(lineEventMessage, "struct")
 	lineEventMessage.VerifyEventAndStartEventFlow()
 
 	// Reply
-	lineHandler.Push(lineEventMessage)
+	lineService.Push(lineEventMessage)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": 0,
