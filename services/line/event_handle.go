@@ -1,7 +1,7 @@
 package line
 
 import (
-	commandflow "HPE-golang-test/services/command-flow"
+	commandflow "HPE-golang-test/services/command_flow"
 	"HPE-golang-test/services/helper"
 
 	lineSDK "github.com/line/line-bot-sdk-go/v7/linebot"

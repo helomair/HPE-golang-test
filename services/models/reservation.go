@@ -57,25 +57,25 @@ func (model *ReserveModel) Save(usermsg Reserve) (string, error) {
 
 // Query all documents from db
 func (model *ReserveModel) QueryAll() ([]Reserve, error) {
-	return model.query(bson.M{})
+	return model.Query(bson.M{})
 }
 
 func (model *ReserveModel) QueryById(id string) (Reserve, error) {
 	objId, _ := primitive.ObjectIDFromHex(id)
-	ret, err := model.query(bson.M{"_id": objId})
+	ret, err := model.Query(bson.M{"_id": objId})
 	return ret[0], err
 }
 
 func (model *ReserveModel) QueryByUser(userID string) ([]Reserve, error) {
-	return model.query(bson.M{"user_id": userID})
+	return model.Query(bson.M{"user_id": userID})
 }
 
 func (model *ReserveModel) DeleteById(id string) error {
 	objId, _ := primitive.ObjectIDFromHex(id)
-	return model.delete(bson.M{"_id": objId})
+	return model.Delete(bson.M{"_id": objId})
 }
 
-func (model *ReserveModel) query(filter interface{}) ([]Reserve, error) {
+func (model *ReserveModel) Query(filter interface{}) ([]Reserve, error) {
 	collection, ctx, cancel := model.prepare()
 	defer cancel()
 
@@ -100,7 +100,7 @@ func (model *ReserveModel) query(filter interface{}) ([]Reserve, error) {
 	return Reserves, nil
 }
 
-func (model *ReserveModel) delete(filter interface{}) error {
+func (model *ReserveModel) Delete(filter interface{}) error {
 	collection, ctx, cancel := model.prepare()
 	defer cancel()
 

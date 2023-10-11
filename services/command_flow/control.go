@@ -18,6 +18,8 @@ func FlowStart(command string, params map[string]string) lineSDK.SendingMessage 
 		ret = component.AvailableCommandsList()
 	case "New":
 		ret = component.ReserveUrl(params)
+	case "Query":
+		ret = queryCommand(params["user_id"])
 	}
 	return ret
 }
